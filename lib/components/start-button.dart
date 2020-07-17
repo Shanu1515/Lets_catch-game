@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flame/sprite.dart';
 import 'package:langaw/langaw-game.dart';
 import 'package:langaw/view.dart';
+import 'package:langaw/controllers/spawner.dart';
 
 class StartButton {
   final LangawGame game;
@@ -26,5 +27,6 @@ class StartButton {
 
   void onTapDown() {
     game.activeView = View.playing;
+    game.spawner.start();
   }
 }

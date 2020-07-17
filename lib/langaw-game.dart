@@ -14,6 +14,11 @@ import 'package:langaw/view.dart';
 import 'package:langaw/views/home-view.dart';
 import 'package:langaw/components/start-button.dart';
 import 'package:langaw/views/lost-view.dart';
+import 'package:langaw/controllers/spawner.dart';
+import 'package:langaw/components/credits-button.dart';
+import 'package:langaw/components/help-button.dart';
+import 'package:langaw/views/help-view.dart';
+import 'package:langaw/views/credits-view.dart';
 
 class LangawGame extends Game {
   Size screenSize;
@@ -25,6 +30,11 @@ class LangawGame extends Game {
   HomeView homeView;
   StartButton startButton;
   LostView lostView;
+  FlySpawner spawner;
+  HelpButton helpButton;
+  CreditsButton creditsButton;
+  HelpView helpView;
+  CreditsView creditsView;
 
   LangawGame() {
     initialize();
@@ -39,8 +49,11 @@ class LangawGame extends Game {
     homeView = HomeView(this);
     startButton = StartButton(this);
     lostView = LostView(this);
-
-    spawnFly();
+    spawner = FlySpawner(this);
+    helpButton = HelpButton(this);
+    creditsButton = CreditsButton(this);
+    helpView = HelpView(this);
+    creditsView = CreditsView(this);
   }
 
   void spawnFly() {
@@ -70,16 +83,22 @@ class LangawGame extends Game {
 
     flies.forEach((Fly fly) => fly.render(canvas));
     if (activeView == View.home) homeView.render(canvas);
+    if (activeView == View.lost) lostView.render(canvas);
 
     if (activeView == View.home || activeView == View.lost) {
       startButton.render(canvas);
+      helpButton.render(canvas);
+      creditsButton.render(canvas);
     }
-    if (activeView == View.lost) lostView.render(canvas);
+
+    if (activeView == View.help) helpView.render(canvas);
+    if (activeView == View.credits) creditsView.render(canvas);
   }
 
   void update(double t) {
     flies.forEach((Fly fly) => fly.update(t));
     flies.removeWhere((Fly fly) => fly.isOffScreen);
+    spawner.update(t);
   }
 
   void resize(Size size) {
@@ -89,13 +108,38 @@ class LangawGame extends Game {
 
   void onTapDown(TapDownDetails d) {
     bool isHandled = false;
+    // dialog boxes
+    if (!isHandled) {
+      if (activeView == View.help || activeView == View.credits) {
+        activeView = View.home;
+        isHandled = true;
+      }
+    }
+    // help button
+    if (!isHandled && helpButton.rect.contains(d.globalPosition)) {
+      if (activeView == View.home || activeView == View.lost) {
+        helpButton.onTapDown();
+        isHandled = true;
+      }
+    }
 
+    // credits button
+    if (!isHandled && creditsButton.rect.contains(d.globalPosition)) {
+      if (activeView == View.home || activeView == View.lost) {
+        creditsButton.onTapDown();
+        isHandled = true;
+      }
+    }
+
+    // start button
     if (!isHandled && startButton.rect.contains(d.globalPosition)) {
       if (activeView == View.home || activeView == View.lost) {
         startButton.onTapDown();
         isHandled = true;
       }
     }
+
+    // flies
     if (!isHandled) {
       bool didHitAFly = false;
       flies.forEach((Fly fly) {
